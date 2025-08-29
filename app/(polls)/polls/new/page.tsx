@@ -1,6 +1,7 @@
 import SiteHeader from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function createPoll(formData: FormData) {
   "use server";
@@ -8,18 +9,41 @@ async function createPoll(formData: FormData) {
   const option1 = String(formData.get("option1") || "").trim();
   const option2 = String(formData.get("option2") || "").trim();
 
-  // In a future step, persist to a database and return the new poll id.
-  // For now, simulate an id and redirect to the poll detail page.
   if (!question || !option1 || !option2) {
-    // Basic guard; with real UI we'd show field errors.
     redirect("/polls/new?error=missing_fields");
   }
 
-  const newId = Math.random().toString(36).slice(2, 8);
-  redirect(`/polls/${newId}`);
+  const supabase = await createSupabaseServerClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    redirect("/sign-in?redirect=/polls/new");
+  }
+
+  const { data, error } = await supabase
+    .from("polls")
+    .insert({
+      question,
+      option1,
+      option2,
+      user_id: auth.user.id,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    redirect("/polls/new?error=create_failed");
+  }
+
+  // Go to Browse so the user can see the newly created poll in the list
+  redirect("/polls");
 }
 
-export default function NewPollPage() {
+export default async function NewPollPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) {
+    redirect("/sign-in?redirect=/polls/new");
+  }
   return (
     <div>
       <SiteHeader />

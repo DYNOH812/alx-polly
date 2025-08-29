@@ -1,11 +1,11 @@
 import SiteHeader from "@/components/site-header";
 
 interface PollPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function PollDetailPage({ params }: PollPageProps) {
-  const { id } = params;
+export default async function PollDetailPage({ params }: PollPageProps) {
+  const { id } = await params;
   return (
     <div>
       <SiteHeader />
