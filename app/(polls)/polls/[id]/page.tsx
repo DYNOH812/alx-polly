@@ -1,55 +1,14 @@
 import SiteHeader from "@/components/site-header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
-import { redirect, notFound } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { notFound } from "next/navigation";
+import { updatePoll, submitVote } from "@/lib/poll-actions";
 
 interface PollPageProps {
   params: Promise<{ id: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
-async function updatePoll(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id"));
-  const question = String(formData.get("question") || "").trim();
-  const option1 = String(formData.get("option1") || "").trim();
-  const option2 = String(formData.get("option2") || "").trim();
-  if (!id || !question || !option1 || !option2) {
-    redirect(`/polls/${id}?error=missing_fields`);
-  }
-  const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect(`/sign-in?redirect=/polls/${id}`);
-  await supabase
-    .from("polls")
-    .update({ question, option1, option2 })
-    .eq("id", id)
-    .eq("user_id", auth.user.id);
-  redirect("/polls");
-}
-
-async function submitVote(formData: FormData) {
-  "use server";
-  const pollId = String(formData.get("pollId"));
-  const option = Number(formData.get("option"));
-  if (!pollId || ![1, 2].includes(option)) {
-    redirect(`/polls/${pollId}`);
-  }
-  const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect(`/sign-in?redirect=/polls/${pollId}`);
-
-  await supabase
-    .from("votes")
-    .upsert(
-      [{ poll_id: pollId, user_id: auth.user.id, option }],
-      { onConflict: "poll_id,user_id" }
-    );
-
-  revalidatePath(`/polls/${pollId}`);
-  redirect(`/polls/${pollId}?voted=1`);
-}
 
 export default async function PollDetailPage({ params, searchParams }: PollPageProps) {
   const { id } = await params;

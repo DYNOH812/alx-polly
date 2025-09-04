@@ -2,18 +2,7 @@ import SiteHeader from "@/components/site-header";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
-import { revalidatePath } from "next/cache";
-
-async function deletePoll(formData: FormData) {
-  "use server";
-  const pollId = String(formData.get("pollId"));
-  if (!pollId) return;
-  const supabase = await createSupabaseServerClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return;
-  await supabase.from("polls").delete().eq("id", pollId).eq("user_id", auth.user.id);
-  revalidatePath("/polls");
-}
+import { deletePoll } from "@/lib/poll-actions";
 
 export default async function PollsPage({
   searchParams,
