@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { updatePoll, submitVote } from "@/lib/poll-actions";
+import LiveResults from "@/components/LiveResults";
 
 interface PollPageProps {
   params: Promise<{ id: string }>;
@@ -39,6 +40,22 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
   if (!poll) {
     notFound();
   }
+
+  // Server-side initial counts for realtime component hydration
+  const [opt1CountRes, opt2CountRes] = await Promise.all([
+    supabase
+      .from("votes")
+      .select("id", { count: "exact", head: true })
+      .eq("poll_id", id)
+      .eq("option", 1),
+    supabase
+      .from("votes")
+      .select("id", { count: "exact", head: true })
+      .eq("poll_id", id)
+      .eq("option", 2),
+  ]);
+  const initialOption1Count = opt1CountRes.count ?? 0;
+  const initialOption2Count = opt2CountRes.count ?? 0;
 
   const sp = (await (searchParams || Promise.resolve({}))) || {};
   const votedParam = sp?.voted;
@@ -113,6 +130,13 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
                 </form>
               )}
             </div>
+            <LiveResults
+              pollId={poll.id}
+              option1Label={poll.option1}
+              option2Label={poll.option2}
+              initialOption1Count={initialOption1Count}
+              initialOption2Count={initialOption2Count}
+            />
           </div>
         )}
       </main>

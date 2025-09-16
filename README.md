@@ -45,3 +45,31 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 You can find these in your Supabase project settings under API.
+
+## Context7 MCP with Gemini CLI (Live docs during codegen)
+
+Configure Context7 as an MCP server for Gemini CLI to inject up-to-date documentation into prompts:
+
+1) Ensure Node.js 18+ is installed.
+
+2) Create or update your Gemini CLI MCP config (for example `~/.config/gemini/mcp.json` on Unix-like systems or `%APPDATA%/gemini/mcp.json` on Windows) with:
+
+```json
+{
+  "servers": {
+    "Context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
+```
+
+3) In Gemini CLI prompts, reference Context7 to fetch live docs, e.g.:
+
+```
+Use context7 to reference latest Supabase Realtime Channels examples for Next.js App Router with @supabase/ssr. I need secure server actions and a client channel for Postgres Changes.
+```
+
+This helps the assistant cite and inject the latest examples when generating or refactoring code here.
