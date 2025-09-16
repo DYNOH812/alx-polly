@@ -1,114 +1,127 @@
-ALX Polly
+🗳️ ALX Polly
 
-ALX Polly is a modern polling application built for learning, collaboration, and experimentation. It enables users to create polls, share them, vote in real time, and visualize results. The project is part of the ALX Software Engineering journey, showcasing integration of authentication, data persistence, and interactive UI.
+A modern poll creation and voting application built with Next.js 13, Supabase, and Tailwind CSS.
+ALX Polly allows users to create polls, share them, and vote in real time, with authentication handled via Supabase (email/password & Google OAuth).
 
-📌 Project Overview
+📌 Features
 
-ALX Polly provides:
+🔐 Authentication (Email/Password + Google OAuth via Supabase)
 
-Authentication: User sign-up, login, and session management.
+📊 Create and manage polls (with at least two options)
 
-Poll Management: Create, update, and manage polls.
+✅ Secure voting system (1 vote per user per poll)
 
-Voting System: Secure and real-time voting with result tracking.
+🖥️ User dashboard to view and manage polls
 
-Dashboard: Personalized dashboard for users to view and interact with polls.
+⚡ Real-time updates with Supabase revalidation
 
-⚙️ Tech Stack
+🛠️ Tech Stack
 
-Frontend: Next.js / React, Tailwind CSS
+Framework: Next.js 13
+ (App Router)
 
-Backend: Supabase (Postgres + Authentication)
+Auth & Database: Supabase
 
-Database: Supabase PostgreSQL
+Styling: Tailwind CSS
+ + Shadcn UI
 
-Styling: TailwindCSS / NativeWind (if used)
+Deployment: Vercel / Supabase Hosting
 
-Deployment: Vercel (or similar)
-
-🔧 Setup
-1. Clone the Repository
+⚙️ Setup & Installation
+1. Clone the repo
 git clone https://github.com/DYNOH812/alx-polly.git
 cd alx-polly
 
-2. Install Dependencies
+2. Install dependencies
 npm install
-# or
-yarn install
 
 3. Configure Supabase
 
-Create a Supabase project at https://supabase.com
+Create a Supabase project
 .
 
-Copy your project’s API keys and URL.
+Enable Email/Password and Google OAuth in Authentication settings.
 
-Add them to a .env.local file in your project root:
+Create the following tables in your Supabase database:
 
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+-- Polls table
+create table polls (
+  id uuid primary key default gen_random_uuid(),
+  question text not null,
+  option1 text not null,
+  option2 text not null,
+  user_id uuid references auth.users(id),
+  created_at timestamp default now()
+);
+
+-- Votes table
+create table votes (
+  poll_id uuid references polls(id),
+  user_id uuid references auth.users(id),
+  option int not null check (option in (1,2)),
+  primary key (poll_id, user_id)
+);
+
+4. Environment Variables
+
+Create a .env.local file in your project root with:
+
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-4. Run the Development Server
+5. Run the app locally
 npm run dev
 
 
-Your app will be available at: http://localhost:3000
+Visit http://localhost:3000
+.
 
 🚀 Usage Examples
-Create a Poll
+🔑 Sign In / Sign Up
 
-Login to your account.
+Email + Password
 
-Go to Create Poll.
+Continue with Google
 
-Enter a title, description, and choices.
+🗳️ Create a Poll
 
-Submit — the poll will appear in your dashboard.
+Go to /polls/new
 
-Vote in a Poll
+Enter a question and at least 2 options
 
-Select a poll from the dashboard.
+Submit → redirect to poll list
 
-Pick your choice.
+✅ Vote on a Poll
 
-Submit your vote and view updated results in real time.
+Visit a poll page (/polls/[id])
+
+Choose option 1 or 2
+
+Vote is recorded (only once per user)
+
+🧑‍💼 Dashboard
+
+View your created polls
+
+Edit or delete polls you own
 
 🧪 Testing
 
-Run tests with:
+Use multiple accounts to verify one-vote-per-user logic.
 
-npm run test
+Try invalid inputs (missing_fields, weak passwords, etc.) and confirm redirects work.
 
+📄 License
 
-Check linting and formatting:
+MIT License © 2025 Dennis Thuranira
 
-npm run lint
-npm run format
+👉 This README now reflects:
 
-📖 Contributing
+Project overview
 
-Contributions are welcome!
+Setup steps (Supabase config, env vars)
 
-Fork the repository.
+Usage flows (create poll, vote, auth)
 
-Create a new branch (feature/my-feature).
-
-Commit your changes.
-
-Push and open a Pull Request.
-
-📜 License
-
-This project is licensed under the MIT License.
-
-## Environment variables
-
-Create a `.env.local` file with the following variables:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-You can find these in your Supabase project settings under API.
+How to run/test
