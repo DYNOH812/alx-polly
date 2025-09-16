@@ -1,39 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+ALX Polly
 
-## Getting Started
+ALX Polly is a modern polling application built for learning, collaboration, and experimentation. It enables users to create polls, share them, vote in real time, and visualize results. The project is part of the ALX Software Engineering journey, showcasing integration of authentication, data persistence, and interactive UI.
 
-First, run the development server:
+📌 Project Overview
 
-```bash
+ALX Polly provides:
+
+Authentication: User sign-up, login, and session management.
+
+Poll Management: Create, update, and manage polls.
+
+Voting System: Secure and real-time voting with result tracking.
+
+Dashboard: Personalized dashboard for users to view and interact with polls.
+
+⚙️ Tech Stack
+
+Frontend: Next.js / React, Tailwind CSS
+
+Backend: Supabase (Postgres + Authentication)
+
+Database: Supabase PostgreSQL
+
+Styling: TailwindCSS / NativeWind (if used)
+
+Deployment: Vercel (or similar)
+
+🔧 Setup
+1. Clone the Repository
+git clone https://github.com/DYNOH812/alx-polly.git
+cd alx-polly
+
+2. Install Dependencies
+npm install
+# or
+yarn install
+
+3. Configure Supabase
+
+Create a Supabase project at https://supabase.com
+.
+
+Copy your project’s API keys and URL.
+
+Add them to a .env.local file in your project root:
+
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+4. Run the Development Server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Your app will be available at: http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🚀 Usage Examples
+Create a Poll
 
-## Learn More
+Login to your account.
 
-To learn more about Next.js, take a look at the following resources:
+Go to Create Poll.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Enter a title, description, and choices.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Submit — the poll will appear in your dashboard.
 
-## Deploy on Vercel
+Vote in a Poll
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Select a poll from the dashboard.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Pick your choice.
+
+Submit your vote and view updated results in real time.
+
+🧪 Testing
+
+Run tests with:
+
+npm run test
+
+
+Check linting and formatting:
+
+npm run lint
+npm run format
+
+📖 Contributing
+
+Contributions are welcome!
+
+Fork the repository.
+
+Create a new branch (feature/my-feature).
+
+Commit your changes.
+
+Push and open a Pull Request.
+
+📜 License
+
+This project is licensed under the MIT License.
 
 ## Environment variables
 
