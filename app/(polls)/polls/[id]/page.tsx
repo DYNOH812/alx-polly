@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { updatePoll, submitVote } from "@/lib/poll-actions";
 import LiveResults from "@/components/LiveResults";
+import dynamic from "next/dynamic";
+
+const LivePresence = dynamic(() => import("@/components/LivePresence"), { ssr: false });
 
 interface PollPageProps {
   params: Promise<{ id: string }>;
@@ -137,6 +140,7 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
               initialOption1Count={initialOption1Count}
               initialOption2Count={initialOption2Count}
             />
+            <LivePresence pollId={poll.id} />
           </div>
         )}
       </main>
