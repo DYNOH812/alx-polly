@@ -7,6 +7,7 @@ import LiveResults from "@/components/LiveResults";
 import dynamic from "next/dynamic";
 
 const LivePresence = dynamic(() => import("@/components/LivePresence"), { ssr: false });
+const PollShare = dynamic(() => import("@/components/PollShare"), { ssr: false });
 
 interface PollPageProps {
   params: Promise<{ id: string }>;
@@ -141,6 +142,7 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
               initialOption2Count={initialOption2Count}
             />
             <LivePresence pollId={poll.id} />
+            <PollShare pollId={poll.id} />
           </div>
         )}
       </main>
