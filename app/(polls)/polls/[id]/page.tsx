@@ -3,6 +3,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { updatePoll, submitVote } from "@/lib/poll-actions";
+import LiveResults from "@/components/LiveResults";
+import LivePresence from "@/components/LivePresence";
+import PollShare from "@/components/PollShare";
+import Comments from "@/components/Comments";
 
 interface PollPageProps {
   params: Promise<{ id: string }>;
@@ -40,6 +44,22 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
     notFound();
   }
 
+  // Server-side initial counts for realtime component hydration
+  const [opt1CountRes, opt2CountRes] = await Promise.all([
+    supabase
+      .from("votes")
+      .select("id", { count: "exact", head: true })
+      .eq("poll_id", id)
+      .eq("option", 1),
+    supabase
+      .from("votes")
+      .select("id", { count: "exact", head: true })
+      .eq("poll_id", id)
+      .eq("option", 2),
+  ]);
+  const initialOption1Count = opt1CountRes.count ?? 0;
+  const initialOption2Count = opt2CountRes.count ?? 0;
+
   const sp = (await (searchParams || Promise.resolve({}))) || {};
   const votedParam = sp?.voted;
   const voted = Array.isArray(votedParam) ? votedParam.includes("1") : votedParam === "1";
@@ -47,7 +67,7 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
   return (
     <div>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <main className="mx-auto max-w-2xl px-3 sm:px-4 py-6 sm:py-8">
         <h1 className="mb-4 text-2xl font-semibold">Poll</h1>
         {isOwner ? (
           <form className="space-y-4" action={updatePoll}>
@@ -83,7 +103,7 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
           </form>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-md border border-black/10 p-4">
+            <div className="rounded-md border border-black/10 p-3 sm:p-4">
               <p className="mb-3 text-base font-medium text-black/90">{poll.question}</p>
               {voted ? (
                 <p className="text-sm text-green-700">Thank you for voting.</p>
@@ -93,17 +113,17 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
                   <fieldset className="space-y-2">
                     <legend className="mb-1 text-sm font-semibold text-black/70">Cast your vote</legend>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="option" value={1} defaultChecked={userVoteOption === 1} />
+                      <input aria-label={`Vote for ${poll.option1}`} type="radio" name="option" value={1} defaultChecked={userVoteOption === 1} />
                       <span>{poll.option1}</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="option" value={2} defaultChecked={userVoteOption === 2} />
+                      <input aria-label={`Vote for ${poll.option2}`} type="radio" name="option" value={2} defaultChecked={userVoteOption === 2} />
                       <span>{poll.option2}</span>
                     </label>
                   </fieldset>
                   <div>
                     {auth?.user ? (
-                      <Button type="submit">Vote</Button>
+                      <Button type="submit" aria-label="Submit vote">Vote</Button>
                     ) : (
                       <Button asChild>
                         <a href={`/sign-in?redirect=/polls/${poll.id}`}>Sign in to vote</a>
@@ -113,6 +133,16 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
                 </form>
               )}
             </div>
+            <LiveResults
+              pollId={poll.id}
+              option1Label={poll.option1}
+              option2Label={poll.option2}
+              initialOption1Count={initialOption1Count}
+              initialOption2Count={initialOption2Count}
+            />
+            <LivePresence pollId={poll.id} />
+            <PollShare pollId={poll.id} />
+            <Comments pollId={poll.id} />
           </div>
         )}
       </main>

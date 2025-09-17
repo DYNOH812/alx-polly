@@ -25,10 +25,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>{children}</AuthProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:rounded bg-black px-3 py-1.5 text-white">
+          Skip to content
+        </a>
+        <AuthProvider>
+          <div role="document">
+            <main id="main" role="main">{children}</main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

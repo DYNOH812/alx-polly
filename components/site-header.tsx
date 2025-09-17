@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { useAuth } from "@/components/auth-provider";
+import { getUserRole } from "@/lib/roles";
 
 export default function SiteHeader() {
   let auth: ReturnType<typeof useAuth> | null = null;
@@ -9,6 +10,7 @@ export default function SiteHeader() {
     auth = useAuth();
   } catch {}
   const isAuthed = !!auth?.user;
+  const role = isAuthed ? getUserRole(auth?.user || null) : null;
   const initial = isAuthed
     ? ((auth?.user?.user_metadata?.full_name as string | undefined)?.charAt(0) || auth?.user?.email?.charAt(0) || "U").toUpperCase()
     : null;
@@ -34,6 +36,11 @@ export default function SiteHeader() {
         <div className="ml-auto flex items-center justify-self-end gap-2">
           {isAuthed ? (
             <>
+              {role ? (
+                <span className="hidden rounded-full bg-black/10 px-2 py-1 text-xs font-medium text-black/70 sm:inline-block">
+                  {role}
+                </span>
+              ) : null}
               <Button variant="outline" onClick={() => auth?.signOut()}>Sign out</Button>
               <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-black text-xs font-semibold text-white sm:flex">
                 {initial}
