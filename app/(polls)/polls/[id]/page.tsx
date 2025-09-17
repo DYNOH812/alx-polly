@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { updatePoll, submitVote } from "@/lib/poll-actions";
 import LiveResults from "@/components/LiveResults";
-import dynamic from "next/dynamic";
-
-const LivePresence = dynamic(() => import("@/components/LivePresence"), { ssr: false });
-const PollShare = dynamic(() => import("@/components/PollShare"), { ssr: false });
-const Comments = dynamic(() => import("@/components/Comments"));
+import LivePresence from "@/components/LivePresence";
+import PollShare from "@/components/PollShare";
+import Comments from "@/components/Comments";
 
 interface PollPageProps {
   params: Promise<{ id: string }>;
