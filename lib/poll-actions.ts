@@ -2,6 +2,18 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+/**
+ * createPoll
+ * ----------
+ * Creates a new poll with a question and at least two options.
+ * - Validates input fields (must have a question and at least 2 options).
+ * - Requires authenticated user (redirects to sign-in if not logged in).
+ * - Inserts the poll into the "polls" table.
+ * - Redirects user based on success/failure.
+ *
+ * Why:
+ * Ensures poll creation is secure, linked to a user, and always valid.
+ */
 // Types
 export type UserId = string;
 
@@ -52,42 +64,27 @@ async function requireUserOrRedirect(redirectTo: string): Promise<{ userId: User
 
 // Validation helpers
 function parseCreateInput(formData: FormData): PollCreateInput | null {
+
   const question = String(formData.get("question") || "").trim();
   const options = formData
     .getAll("options")
     .map((o) => String(o || "").trim())
     .filter(Boolean);
-  if (!question || options.length < 2) return null;
-  const [option1, option2] = options as [string, string];
-  return { question, option1, option2 };
-}
 
-function parseUpdateInput(formData: FormData): PollUpdateInput | null {
-  const id = String(formData.get("id") || "").trim();
-  const question = String(formData.get("question") || "").trim();
-  const option1 = String(formData.get("option1") || "").trim();
-  const option2 = String(formData.get("option2") || "").trim();
-  if (!id || !question || !option1 || !option2) return null;
-  return { id, question, option1, option2 };
-}
+  // Validate required fields
+  if (!question || options.length < 2) {
+    redirect("/polls/new?error=missing_fields");
+  }
 
-function parseVoteInput(formData: FormData): VoteInput | null {
-  const pollId = String(formData.get("pollId") || "").trim();
-  const optionNum = Number(formData.get("option"));
-  if (!pollId || ![1, 2].includes(optionNum)) return null;
-  return { pollId, option: optionNum as 1 | 2 };
-}
+  // Only first two options are stored currently
+  const [option1, option2] = options;
 
-function parseCommentInput(formData: FormData): CommentInput | null {
-  const pollId = String(formData.get("pollId") || "").trim();
-  const content = String(formData.get("content") || "").trim();
-  if (!pollId || !content) return null;
-  return { pollId, content };
-}
+  const supabase = await createSupabaseServerClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    redirect("/sign-in?redirect=/polls/new");
+  }
 
-// Data operations (DB layer)
-async function dbInsertPoll(userId: UserId, input: PollCreateInput) {
-  const supabase = await getSupabase();
   const { error } = await supabase.from("polls").insert({
     question: input.question,
     option1: input.option1,
@@ -147,8 +144,20 @@ export async function createPoll(formData: FormData) {
   go("/polls?created=1");
 }
 
+/**
+ * deletePoll
+ * ----------
+ * Deletes a poll owned by the authenticated user.
+ * - Ensures pollId exists.
+ * - Restricts deletion to the poll’s owner.
+ * - Revalidates `/polls` page after deletion to refresh the UI.
+ *
+ * Why:
+ * Prevents users from deleting polls they don’t own.
+ */
 export async function deletePoll(formData: FormData) {
   "use server";
+
   const pollIdRaw = formData.get("pollId");
   const pollId = pollIdRaw ? String(pollIdRaw) : "";
   if (!pollId) return; // silently ignore
@@ -157,35 +166,76 @@ export async function deletePoll(formData: FormData) {
   revalidatePath("/polls");
 }
 
+/**
+ * updatePoll
+ * ----------
+ * Updates an existing poll’s question and options.
+ * - Requires valid poll ID and non-empty fields.
+ * - Authenticated users only (must own the poll).
+ * - Redirects on success or failure.
+ *
+ * Why:
+ * Allows poll owners to edit their questions/options without breaking data integrity.
+ */
 export async function updatePoll(formData: FormData) {
   "use server";
-  const input = parseUpdateInput(formData);
-  if (!input) fail(`/polls/${String(formData.get("id") || "")}`, "missing_fields");
-  const { userId } = await requireUserOrRedirect(`/polls/${input!.id}`);
-  await dbUpdatePoll(userId, input!);
-  go("/polls");
+
+  const id = String(formData.get("id"));
+  const question = String(formData.get("question") || "").trim();
+  const option1 = String(formData.get("option1") || "").trim();
+  const option2 = String(formData.get("option2") || "").trim();
+
+  // Validate required fields
+  if (!id || !question || !option1 || !option2) {
+    redirect(`/polls/${id}?error=missing_fields`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) redirect(`/sign-in?redirect=/polls/${id}`);
+
+  await supabase
+    .from("polls")
+    .update({ question, option1, option2 })
+    .eq("id", id)
+    .eq("user_id", auth.user.id);
+
+  redirect("/polls");
 }
 
+/**
+ * submitVote
+ * ----------
+ * Records or updates a user’s vote on a poll.
+ * - Ensures valid pollId and option (must be 1 or 2).
+ * - Authenticated users only (redirects otherwise).
+ * - Uses `upsert` to insert or update the vote, enforcing one vote per user.
+ * - Revalidates poll page to update results in real-time.
+ *
+ * Why:
+ * Maintains fairness (1 vote per user) and ensures live updates.
+ */
 export async function submitVote(formData: FormData) {
   "use server";
-  const input = parseVoteInput(formData);
-  if (!input) go(`/polls/${String(formData.get("pollId") || "")}`);
-  const { userId } = await requireUserOrRedirect(`/polls/${input!.pollId}`);
-  await dbUpsertVote(userId, input!);
-  await dbEnqueueEmailJob("vote", input!.pollId, userId, { option: input!.option });
-  revalidatePath(`/polls/${input!.pollId}`);
-  go(`/polls/${input!.pollId}?voted=1`);
+
+  const pollId = String(formData.get("pollId"));
+  const option = Number(formData.get("option"));
+
+  // Validate pollId and option
+  if (!pollId || ![1, 2].includes(option)) {
+    redirect(`/polls/${pollId}`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) redirect(`/sign-in?redirect=/polls/${pollId}`);
+
+  await supabase
+    .from("votes")
+    .upsert([{ poll_id: pollId, user_id: auth.user.id, option }], {
+      onConflict: "poll_id,user_id", // Enforce one vote per poll per user
+    });
+
+  revalidatePath(`/polls/${pollId}`);
+  redirect(`/polls/${pollId}?voted=1`);
 }
-
-export async function createComment(formData: FormData) {
-  "use server";
-  const input = parseCommentInput(formData);
-  if (!input) go(`/polls/${String(formData.get("pollId") || "")}`);
-  const { userId } = await requireUserOrRedirect(`/polls/${input!.pollId}`);
-  await dbInsertComment(userId, input!);
-  await dbEnqueueEmailJob("comment", input!.pollId, userId, { length: input!.content.length });
-  revalidatePath(`/polls/${input!.pollId}`);
-  go(`/polls/${input!.pollId}#comments`);
-}
-
-
