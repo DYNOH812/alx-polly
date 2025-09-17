@@ -20,6 +20,11 @@ export interface VoteInput {
   option: 1 | 2;
 }
 
+export interface CommentInput {
+  pollId: string;
+  content: string;
+}
+
 // Error helpers
 function fail(path: string, code: string) {
   redirect(`${path}?error=${code}`);
@@ -71,6 +76,13 @@ function parseVoteInput(formData: FormData): VoteInput | null {
   return { pollId, option: optionNum as 1 | 2 };
 }
 
+function parseCommentInput(formData: FormData): CommentInput | null {
+  const pollId = String(formData.get("pollId") || "").trim();
+  const content = String(formData.get("content") || "").trim();
+  if (!pollId || !content) return null;
+  return { pollId, content };
+}
+
 // Data operations (DB layer)
 async function dbInsertPoll(userId: UserId, input: PollCreateInput) {
   const supabase = await getSupabase();
@@ -105,6 +117,11 @@ async function dbUpsertVote(userId: UserId, input: VoteInput) {
     .upsert([{ poll_id: input.pollId, user_id: userId, option: input.option }], {
       onConflict: "poll_id,user_id",
     });
+}
+
+async function dbInsertComment(userId: UserId, input: CommentInput) {
+  const supabase = await getSupabase();
+  await supabase.from("comments").insert({ poll_id: input.pollId, user_id: userId, content: input.content });
 }
 
 // Actions
@@ -146,6 +163,16 @@ export async function submitVote(formData: FormData) {
   await dbUpsertVote(userId, input!);
   revalidatePath(`/polls/${input!.pollId}`);
   go(`/polls/${input!.pollId}?voted=1`);
+}
+
+export async function createComment(formData: FormData) {
+  "use server";
+  const input = parseCommentInput(formData);
+  if (!input) go(`/polls/${String(formData.get("pollId") || "")}`);
+  const { userId } = await requireUserOrRedirect(`/polls/${input!.pollId}`);
+  await dbInsertComment(userId, input!);
+  revalidatePath(`/polls/${input!.pollId}`);
+  go(`/polls/${input!.pollId}#comments`);
 }
 
 
