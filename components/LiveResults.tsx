@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import dynamic from "next/dynamic";
+
+const ResultsChart = dynamic(() => import("@/components/ResultsChart"), { ssr: false });
 
 type LiveResultsProps = {
   pollId: string;
@@ -71,6 +74,14 @@ export default function LiveResults({
       <div className="space-y-3">
         <ProgressRow label={option1Label} count={option1Count} percent={pct(option1Count)} colorClass="bg-blue-600" />
         <ProgressRow label={option2Label} count={option2Count} percent={pct(option2Count)} colorClass="bg-purple-600" />
+      </div>
+      <div className="mt-4">
+        <ResultsChart
+          option1Label={option1Label}
+          option2Label={option2Label}
+          option1Count={option1Count}
+          option2Count={option2Count}
+        />
       </div>
       <p className="mt-3 text-xs text-black/60">Total votes: {total}</p>
     </div>
