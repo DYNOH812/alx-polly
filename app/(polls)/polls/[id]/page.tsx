@@ -69,7 +69,7 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
   return (
     <div>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <main className="mx-auto max-w-2xl px-3 sm:px-4 py-6 sm:py-8">
         <h1 className="mb-4 text-2xl font-semibold">Poll</h1>
         {isOwner ? (
           <form className="space-y-4" action={updatePoll}>
@@ -105,7 +105,7 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
           </form>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-md border border-black/10 p-4">
+            <div className="rounded-md border border-black/10 p-3 sm:p-4">
               <p className="mb-3 text-base font-medium text-black/90">{poll.question}</p>
               {voted ? (
                 <p className="text-sm text-green-700">Thank you for voting.</p>
@@ -115,17 +115,17 @@ export default async function PollDetailPage({ params, searchParams }: PollPageP
                   <fieldset className="space-y-2">
                     <legend className="mb-1 text-sm font-semibold text-black/70">Cast your vote</legend>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="option" value={1} defaultChecked={userVoteOption === 1} />
+                      <input aria-label={`Vote for ${poll.option1}`} type="radio" name="option" value={1} defaultChecked={userVoteOption === 1} />
                       <span>{poll.option1}</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="option" value={2} defaultChecked={userVoteOption === 2} />
+                      <input aria-label={`Vote for ${poll.option2}`} type="radio" name="option" value={2} defaultChecked={userVoteOption === 2} />
                       <span>{poll.option2}</span>
                     </label>
                   </fieldset>
                   <div>
                     {auth?.user ? (
-                      <Button type="submit">Vote</Button>
+                      <Button type="submit" aria-label="Submit vote">Vote</Button>
                     ) : (
                       <Button asChild>
                         <a href={`/sign-in?redirect=/polls/${poll.id}`}>Sign in to vote</a>
