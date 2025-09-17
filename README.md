@@ -48,6 +48,7 @@ Key files:
 - `components/ResultsChart.tsx`: SVG donut chart
 - `components/PollShare.tsx`: QR/link sharing
 - `lib/roles.ts`: Derive user role from Supabase metadata
+ - Email jobs: queued via `email_jobs` table (see below)
 
 ## Realtime Results & Presence
 
@@ -71,6 +72,28 @@ channel.subscribe((status) => {
 ```
 
 ## Context7 MCP with Gemini CLI (Live docs during codegen)
+## Email Notifications (queue stub)
+
+Server Actions enqueue lightweight email jobs after votes and comments. Create this table:
+
+```sql
+create table if not exists public.email_jobs (
+  id uuid primary key default gen_random_uuid(),
+  type text not null check (type in ('vote','comment')),
+  poll_id uuid not null references public.polls(id) on delete cascade,
+  actor_user_id uuid not null references auth.users(id),
+  payload jsonb not null default '{}',
+  created_at timestamptz not null default now(),
+  processed_at timestamptz
+);
+```
+
+Processing options:
+
+- Supabase Scheduled Functions or Edge Functions to process pending jobs
+- External worker (e.g., Deno/Node) polling `email_jobs where processed_at is null`
+- After processing, set `processed_at = now()`
+
 
 Configure Context7 MCP to inject live documentation into prompts.
 

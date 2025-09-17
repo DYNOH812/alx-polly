@@ -25,6 +25,8 @@ export interface CommentInput {
   content: string;
 }
 
+type EmailJobType = "vote" | "comment";
+
 // Error helpers
 function fail(path: string, code: string) {
   redirect(`${path}?error=${code}`);
@@ -124,6 +126,13 @@ async function dbInsertComment(userId: UserId, input: CommentInput) {
   await supabase.from("comments").insert({ poll_id: input.pollId, user_id: userId, content: input.content });
 }
 
+async function dbEnqueueEmailJob(type: EmailJobType, pollId: string, actorUserId: string, payload: Record<string, unknown> = {}) {
+  const supabase = await getSupabase();
+  await supabase
+    .from("email_jobs")
+    .insert({ type, poll_id: pollId, actor_user_id: actorUserId, payload });
+}
+
 // Actions
 export async function createPoll(formData: FormData) {
   "use server";
@@ -161,6 +170,7 @@ export async function submitVote(formData: FormData) {
   if (!input) go(`/polls/${String(formData.get("pollId") || "")}`);
   const { userId } = await requireUserOrRedirect(`/polls/${input!.pollId}`);
   await dbUpsertVote(userId, input!);
+  await dbEnqueueEmailJob("vote", input!.pollId, userId, { option: input!.option });
   revalidatePath(`/polls/${input!.pollId}`);
   go(`/polls/${input!.pollId}?voted=1`);
 }
@@ -171,6 +181,7 @@ export async function createComment(formData: FormData) {
   if (!input) go(`/polls/${String(formData.get("pollId") || "")}`);
   const { userId } = await requireUserOrRedirect(`/polls/${input!.pollId}`);
   await dbInsertComment(userId, input!);
+  await dbEnqueueEmailJob("comment", input!.pollId, userId, { length: input!.content.length });
   revalidatePath(`/polls/${input!.pollId}`);
   go(`/polls/${input!.pollId}#comments`);
 }
