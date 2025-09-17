@@ -1,46 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📍 Capstone Part 1: Planning with AI
+🎯 Project Idea
 
-## Getting Started
+Project Title: Alx Polly – Realtime Polling App
 
-First, run the development server:
+Description:
+Alx Polly is a Next.js + Supabase application that allows users to create polls, vote in real-time, and share results via links or QR codes. The goal is to make decision-making transparent, interactive, and engaging for teams, classrooms, and communities.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+This project matters because it provides a simple way to capture group sentiment instantly, making collaboration and participation more meaningful.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Languages: TypeScript, JavaScript
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Frameworks/Libraries: Next.js (App Router), React, Tailwind CSS, ShadCN UI
 
-## Learn More
+Backend/Database: Supabase (Postgres, Auth, Realtime, Storage)
 
-To learn more about Next.js, take a look at the following resources:
+Deployment: Vercel (frontend) + Supabase cloud backend
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Dev Tools: GitHub, ESLint, Prettier, Husky
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🧠 AI Integration Plan
+🧱 1. Code or Feature Generation
 
-## Deploy on Vercel
+AI will scaffold and accelerate repetitive coding tasks:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Generate React components (poll forms, result charts, modal dialogs).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Scaffold Next.js routes and layouts.
 
-## Environment variables
+Draft Supabase client queries for CRUD operations.
 
-Create a `.env.local` file with the following variables:
+Suggest UI refinements (responsive design, accessibility).
 
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
+Sample Prompt:
 
-You can find these in your Supabase project settings under API.
+“Generate a Next.js server action that inserts a new poll with a question and options into Supabase, validating that at least two options exist.”
+
+🧪 2. Testing Support
+
+AI will help generate test cases and edge scenarios:
+
+Unit tests: Supabase queries and data validation.
+
+Integration tests: Poll creation → voting → real-time update.
+
+End-to-end tests: Using Playwright to simulate user interactions.
+
+Sample Prompt:
+
+“Write Playwright e2e tests for creating a poll, submitting votes, and verifying live updates on the results page.”
+
+📡 3. Schema-Aware / API-Aware Generation
+
+AI will be fed project schema and API details:
+
+Supabase schema (polls, options, votes tables).
+
+Generate SQL queries and TypeScript types based on schema.
+
+Help build API routes by referencing the Supabase schema.
+
+Assist with migrations and schema evolution.
+
+Sample Prompt:
+
+“Given this Supabase schema with tables polls, options, and votes, generate a TypeScript function to fetch poll results grouped by option.”
+
+🛠️ In-Editor / PR Review Tooling
+
+Tool: Cursor (AI-enhanced IDE) + GitHub PR AI reviewers like CodeRabbit.
+
+Usage:
+
+Draft commit messages automatically.
+
+Summarize and explain diffs in PRs.
+
+Suggest improvements for readability and maintainability.
+
+Catch missing documentation/tests during reviews.
+
+📝 Prompting Strategy
+
+For feature scaffolding:
+
+“Create a responsive poll creation form in React with Tailwind CSS. Validate that users can’t submit without a question and at least two options.”
+
+For testing:
+
+“Generate Jest unit tests for the Supabase insertPoll function, including edge cases for empty questions and fewer than 2 options.”
