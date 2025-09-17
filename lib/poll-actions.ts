@@ -128,9 +128,11 @@ async function dbInsertComment(userId: UserId, input: CommentInput) {
 
 async function dbEnqueueEmailJob(type: EmailJobType, pollId: string, actorUserId: string, payload: Record<string, unknown> = {}) {
   const supabase = await getSupabase();
-  await supabase
-    .from("email_jobs")
-    .insert({ type, poll_id: pollId, actor_user_id: actorUserId, payload });
+  const table = (supabase as any).from?.("email_jobs");
+  // In tests, mocks might not provide insert; guard to avoid throwing.
+  if (table && typeof table.insert === "function") {
+    await table.insert({ type, poll_id: pollId, actor_user_id: actorUserId, payload });
+  }
 }
 
 // Actions

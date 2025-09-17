@@ -72,6 +72,16 @@ channel.subscribe((status) => {
 ```
 
 ## Context7 MCP with Gemini CLI (Live docs during codegen)
+## AI Reviews & Release Notes
+
+This repo includes a Release Drafter workflow to auto-draft release notes on pushes/PRs.
+
+To enable CodeRabbit PR reviews:
+
+1. Install CodeRabbit on your GitHub repo/organization
+2. Configure CodeRabbit rules in their dashboard (or via repository settings)
+3. Open PRs—CodeRabbit will annotate diffs automatically
+
 ## Email Notifications (queue stub)
 
 Server Actions enqueue lightweight email jobs after votes and comments. Create this table:
